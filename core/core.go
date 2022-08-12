@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/gofiber/fiber/v2"
 	"net/url"
 	"strconv"
 	"strings"
@@ -17,7 +18,7 @@ func InjectAvailabilityAndSendMessage(r []byte, headers map[string]string) (Mess
 
 	if unmarshalErr := json.Unmarshal(r, m); unmarshalErr != nil {
 		return Message{}, &RequestError{
-			StatusCode: 400,
+			StatusCode: fiber.StatusBadRequest,
 			Err:        unmarshalErr,
 		}
 	}
@@ -33,7 +34,7 @@ func InjectAvailabilityAndSendMessage(r []byte, headers map[string]string) (Mess
 
 		if buildErr != nil {
 			return Message{}, &RequestError{
-				StatusCode: 422,
+				StatusCode: fiber.StatusPreconditionFailed,
 				Err:        buildErr,
 			}
 		}
@@ -53,7 +54,7 @@ func InjectAvailabilityAndSendMessage(r []byte, headers map[string]string) (Mess
 		return res, nil
 	} else {
 		return Message{}, &RequestError{
-			StatusCode: 400,
+			StatusCode: fiber.StatusBadRequest,
 			Err:        errors.New("missing availability tag in email body"),
 		}
 	}
