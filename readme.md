@@ -4,7 +4,11 @@
 Originally built as part of a customer request, now largely academic exercise in using the Nylas API to inject timeslots into an email using the scheduler. 
 
 ## Design
-Webserver accepting API calls to POST `/send`, accepting the Nylas message body and authorization header, with additional information needed to call the scheduler `/timeslots` API.  The results of the timeslots API are then injected into the body of the message and the webserver then calls the Nylas `/send` API.  The scheduler is used to provide an easy method for fetching timeslots that match the user's preferences and provide an easy fallback option if timeslots do not meet the end user's needs.  The availability API could also be used instead of scheduler.
+- Webserver accepting API calls to POST `/send`
+- The server expects the Nylas message body with a tag `{availability}` to indicate where to insert the time slots.
+- Additional information is required in the post body to call the scheduler `/timeslots` API along with the Nylas authorization header (see below).
+- The results of the timeslots API are then injected into the body of the message and the webserver then calls the Nylas `/send` API.
+- The scheduler is used to provide an easy method for fetching timeslots that match the user's preferences and provide an easy fallback option if timeslots do not meet the end user's needs.
 
 ## Items to Note
 - No support for EU DC 

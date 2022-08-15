@@ -21,12 +21,10 @@ func main() {
 
 	app.Get("/webhooks", func(ctx *fiber.Ctx) error {
 		if challenge := ctx.Query("challenge"); challenge != "" {
-			ctx.Status(200)
-			return ctx.Send([]byte(challenge))
+			return ctx.Status(fiber.StatusOK).SendString(challenge)
 		}
 
-		ctx.Status(400)
-		return ctx.Send([]byte("Bad request"))
+		return ctx.SendStatus(fiber.StatusBadRequest)
 	})
 
 	app.Post("/webhooks", func(ctx *fiber.Ctx) error {
@@ -34,21 +32,18 @@ func main() {
 
 		signature := ctx.GetReqHeaders()["X-Nylas-Signature"]
 		if err := core.CheckSignature(os.Getenv("NYLAS_CLIENT_SECRET"), signature, ctx.Body()); err != nil {
-			ctx.Status(401)
-			return nil
+			return ctx.SendStatus(fiber.StatusUnauthorized)
 		}
 
 		w := new(core.WebhookRequest)
 		if e := json.Unmarshal(ctx.Body(), w); e != nil {
 			log.Println("Error parsing webhook body into WebhookRequest", e)
-			ctx.Status(400)
-			return nil
+			return ctx.SendStatus(fiber.StatusBadRequest)
 		}
 
 		w.LogInfo()
 
-		ctx.Status(200)
-		return nil
+		return ctx.SendStatus(fiber.StatusOK)
 	})
 
 	app.Post("/send", func(ctx *fiber.Ctx) error {
@@ -67,7 +62,7 @@ func main() {
 			} else if errors.Is(reqErr, context.DeadlineExceeded) {
 				res.ErrorMessage = "API timeout calling Nylas"
 			} else {
-				ctx.Status(500)
+				ctx.Status(fiber.StatusInternalServerError)
 			}
 
 			b, _ := json.Marshal(res)
@@ -78,7 +73,7 @@ func main() {
 			Success: true,
 			Data:    sendRes,
 		})
-		return ctx.Send(b)
+		return ctx.Status(fiber.StatusOK).Send(b)
 	})
 
 	log.Fatal(app.Listen(":8000"))
